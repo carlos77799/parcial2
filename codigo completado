@@ -1,0 +1,144 @@
+#include <iostream>
+using namespace std;
+
+struct nodo {
+    int edad; 
+    int niup; 
+    nodo *izq; 
+    nodo *der; 
+};
+
+nodo *raiz = NULL; 
+
+
+void posicionar(nodo *&n, nodo *nuevo) {
+    if (n == NULL) {
+        n = nuevo;
+    } else if (nuevo->edad > n->edad) { 
+        posicionar(n->izq, nuevo);
+    } else {
+        posicionar(n->der, nuevo);
+    }
+}
+
+
+void registrar() {
+    nodo *nuevo = new nodo();
+    cout << "Ingrese la edad del paciente: ";
+    cin >> nuevo->edad;
+    cout << "Ingrese el NIUP del paciente: ";
+    cin >> nuevo->niup;
+    nuevo->izq = nuevo->der = NULL;
+
+    posicionar(raiz, nuevo);
+}
+
+
+void mostrar(nodo *a) {
+    if (a != NULL) {
+        mostrar(a->izq); 
+        cout << "NIUP: " << a->niup << ", Edad: " << a->edad << endl;
+        mostrar(a->der); 
+    }
+}
+
+void mostrarPacientes() {
+    mostrar(raiz);
+}
+
+
+bool buscar(nodo *n, int niup) {
+    if (n == NULL) {
+        return false;
+    }
+    if (n->niup == niup) {
+        cout << "Paciente encontrado: NIUP: " << n->niup << ", Edad: " << n->edad << endl;
+        return true;
+    }
+    
+    return buscar(n->izq, niup) || buscar(n->der, niup);
+}
+
+
+void buscarPaciente() {
+    int niup;
+    cout << "Ingrese el NIUP del paciente a buscar: ";
+    cin >> niup;
+    if (!buscar(raiz, niup)) {
+        cout << "Paciente no encontrado." << endl;
+    }
+}
+
+
+nodo* encontrarMinimo(nodo* n) {
+    while (n && n->izq != NULL) {
+        n = n->izq;
+    }
+    return n;
+}
+
+// Función para eliminar un paciente
+nodo* eliminar(nodo* n, int niup) {
+    if (n == NULL) {
+        return n;
+    }
+
+    if (niup < n->niup) {
+        n->izq = eliminar(n->izq, niup);
+    } else if (niup > n->niup) {
+        n->der = eliminar(n->der, niup);
+    } else {
+        //nodo encontrado
+        //nodo sin hijos
+        if (n->izq == NULL && n->der == NULL) {
+            delete n;
+            return NULL; //eliminar nodo 
+        }
+        //nodo con un hijo
+        else if (n->izq == NULL) {
+            nodo *hijoDerecho = n->der;
+            delete n;
+            return hijoDerecho;
+        } else if (n->der == NULL) {
+            nodo *hijoIzquierdo = n->izq;
+            delete n;
+            return hijoIzquierdo;
+        } else {
+            //nodo con dos hijos 
+            nodo* minimo = encontrarMinimo(n->der);
+            n->niup = minimo->niup;
+            n->edad = minimo->edad;
+            n->der = eliminar(n->der, minimo->niup);
+        }
+    }
+    return n;
+}
+
+void eliminarPaciente() {
+    int niup;
+    cout << "Ingrese el NIUP del paciente a eliminar: ";
+    cin >> niup;
+    raiz = eliminar(raiz, niup);
+}
+
+
+int main() {
+    int opc;
+    do {
+        cout << "1. Registrar paciente" << endl
+             << "2. Mostrar pacientes" << endl
+             << "3. Buscar paciente" << endl
+             << "4. Eliminar paciente" << endl
+             << "5. Salir" << endl;
+        cin >> opc;
+        switch (opc) {
+            case 1: registrar(); break;
+            case 2: mostrarPacientes(); break;
+            case 3: buscarPaciente(); break;
+            case 4: eliminarPaciente(); break;
+            case 5: cout << "Saliendo..." << endl; break;
+            default: cout << "Opción no válida. Intente de nuevo." << endl; break;
+        }
+    } while (opc != 5);
+    return 0;
+}
